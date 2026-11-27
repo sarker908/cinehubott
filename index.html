@@ -286,6 +286,25 @@
         </div>
     </section>
 
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-logo">CINE<span>HUB</span></div>
+                <p class="footer-desc">Your ultimate streaming destination.</p>
+            </div>
+            <div class="footer-nav">
+                <a href="#" onclick="switchSection('movies');return false">Movies</a>
+                <a href="#" onclick="switchSection('tvshows');return false">TV Shows</a>
+                <a href="#" id="footer-watchlist">Watchlist</a>
+                <a href="#" id="footer-continue">Continue Watching</a>
+                <a href="#" id="footer-stats">Statistics</a>
+            </div>
+            <div class="footer-copy">
+                <p id="footer-dev-trigger">Powered by NS &copy; <span id="current-year"></span> CineHub</p>
+                <a href="#" id="footer-addon-manager" style="display:none">Addon Manager</a>
+            </div>
+        </div>
+    </footer>
       </main>
     </div>
 
@@ -446,25 +465,7 @@
     <div id="notification" class="notification"></div>
 
     <!-- FOOTER -->
-    <footer>
-        <div class="footer-inner">
-            <div class="footer-brand">
-                <div class="footer-logo">CINE<span>HUB</span></div>
-                <p class="footer-desc">Your ultimate streaming destination.</p>
-            </div>
-            <div class="footer-nav">
-                <a href="#" onclick="switchSection('movies');return false">Movies</a>
-                <a href="#" onclick="switchSection('tvshows');return false">TV Shows</a>
-                <a href="#" id="footer-watchlist">Watchlist</a>
-                <a href="#" id="footer-continue">Continue Watching</a>
-                <a href="#" id="footer-stats">Statistics</a>
-            </div>
-            <div class="footer-copy">
-                <p id="footer-dev-trigger">Powered by NS &copy; <span id="current-year"></span> CineHub</p>
-                <a href="#" id="footer-addon-manager" style="display:none">Addon Manager</a>
-            </div>
-        </div>
-    </footer>
+
 
     <script src="direct-streaming.js"></script>
     <script src="cinehub-player.js"></script>
