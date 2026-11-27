@@ -211,19 +211,17 @@ async function init() {
     $('current-year').textContent = new Date().getFullYear();
     populateYears();
     setupListeners();
-    await Promise.all([
-        loadTrendingHeader(),
-        fetchGenres('movie', movieGenre),
-        fetchGenres('tv', tvGenre),
-    ]);
-    await loadPlatformProviders();
-    renderPlatformFilters();
+
+    // Start the main catalog immediately. Optional UI data (genres, hero,
+    // provider filters) must never prevent movies and shows from loading.
+    loadTrendingHeader().catch(error => console.warn('Trending header failed:', error));
+    fetchGenres('movie', movieGenre).catch(error => console.warn('Movie genres unavailable:', error));
+    fetchGenres('tv', tvGenre).catch(error => console.warn('TV genres unavailable:', error));
+
     const savedPlatform = localStorage.getItem(PLATFORM_STORAGE_KEY) || '';
     if (savedPlatform) {
-        // Restore the user's last selected streaming platform (no extra/duplicate fetch)
         movieFilters.platform = savedPlatform;
-        tvFilters.platform    = savedPlatform;
-        updatePlatformButtonsUI(savedPlatform);
+        tvFilters.platform = savedPlatform;
         showLoading(movieLoading, movieGrid);
         showLoading(tvLoading, tvGrid);
         fetchMoviesDiscover();
@@ -232,8 +230,13 @@ async function init() {
         fetchMovies(currentMovieEndpoint);
         fetchTVShows(currentTvEndpoint);
     }
+
+    // Provider filters are secondary. Render the All option immediately,
+    // then replace it if TMDB returns Bangladesh provider data.
+    renderPlatformFilters();
+    loadPlatformProviders().then(() => renderPlatformFilters());
     loadRecommendations();
-    setInterval(loadTrendingHeader, 12000);
+    setInterval(loadTrendingHeader, 12 * 60 * 1000);
 }
 
 // ── TRENDING HEADER ───────────────────────────────────
@@ -364,9 +367,10 @@ async function api(endpoint, params = {}) {
 
 // ── GENRES ───────────────────────────────────────────
 async function fetchGenres(type, select) {
+    if (!select) return;
     const d = await api(`genre/${type}/list`);
     const map = type === 'movie' ? movieGenreMap : tvGenreMap;
-    d.genres.forEach(g => {
+    (d.genres || []).forEach(g => {
         map[g.id] = g.name;
         const o = document.createElement('option');
         o.value = g.id; o.textContent = g.name;
