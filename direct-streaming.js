@@ -121,7 +121,7 @@
     };
 
     function streamUrl(base, type, id) {
-        return base + '/stream/' + type + '/' + encodeURIComponent(id) + '.json';
+        return base + '/stream/' + type + '/' + id + '.json';
     }
 
     function inferQuality(stream) {
