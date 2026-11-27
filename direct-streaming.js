@@ -27,11 +27,11 @@
         if (!['http:', 'https:'].includes(url.protocol)) {
             throw new Error('Only HTTP or HTTPS manifest URLs are supported.');
         }
-        return url.href.replace(/\\/+$/, '');
+        return url.href.replace(/\/+$/, '');
     }
 
     function addonBase(manifestUrl) {
-        return cleanManifestUrl(manifestUrl).replace(/\\/manifest\\.json(?:\\?.*)?$/i, '');
+        return cleanManifestUrl(manifestUrl).replace(/\/manifest\.json(?:\?.*)?$/i, '');
     }
 
     async function fetchJson(url) {
@@ -126,7 +126,7 @@
 
     function inferQuality(stream) {
         const text = [stream.name, stream.title, stream.description].filter(Boolean).join(' ');
-        const match = text.match(/\\b(2160|1440|1080|720|576|480|360)p\\b/i);
+        const match = text.match(/\b(2160|1440|1080|720|576|480|360)p\b/i);
         return match ? Number(match[1]) : 0;
     }
 
@@ -141,10 +141,10 @@
         if (!['http:', 'https:'].includes(url.protocol)) return null;
 
         const rawType = String(stream.type || '').toLowerCase();
-        const isHls = rawType.includes('hls') || /\\.m3u8(?:$|\\?)/i.test(url.pathname + url.search);
+        const isHls = rawType.includes('hls') || /\.m3u8(?:$|\?)/i.test(url.pathname + url.search);
         // CineHub's player supports HLS and ordinary browser-playable media.
         // DASH manifests and torrent/infoHash-only streams are not passed to it.
-        if (rawType.includes('dash') || /\\.mpd(?:$|\\?)/i.test(url.pathname + url.search)) return null;
+        if (rawType.includes('dash') || /\.mpd(?:$|\?)/i.test(url.pathname + url.search)) return null;
 
         const subtitles = Array.isArray(stream.subtitles)
             ? stream.subtitles.filter(item => item && item.url).map(item => ({
