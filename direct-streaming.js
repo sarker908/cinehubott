@@ -157,7 +157,7 @@
         const language = stream.language || '';
         return {
             url: url.href,
-            provider: String(stream.name || stream.title || addonName || 'Direct source').slice(0, 90),
+            provider: String(addonName || 'Direct source').slice(0, 90),
             quality,
             streamType: isHls ? 'hls' : 'file',
             language: String(language).slice(0, 32),
@@ -169,9 +169,11 @@
         async getDirectStreams(request) {
             if (!request || !request.imdbId) return [];
             const type = request.type === 'tv' ? 'series' : 'movie';
+            const imdbId = String(request.imdbId);
+            if (!/^tt\\d+$/i.test(imdbId)) return [];
             const itemId = type === 'series'
-                ? request.imdbId + ':' + Number(request.season) + ':' + Number(request.episode)
-                : request.imdbId;
+                ? imdbId + ':' + Number(request.season) + ':' + Number(request.episode)
+                : imdbId;
 
             const addons = readAddons().filter(addon => addon.enabled !== false);
             const results = await Promise.all(addons.map(async addon => {
@@ -197,7 +199,7 @@
             });
             return [...unique.values()].sort((a, b) =>
                 (b.quality || 0) - (a.quality || 0) ||
-                (a.streamType === 'hls' ? -1 : 1)
+                (a.streamType === b.streamType ? 0 : a.streamType === 'hls' ? -1 : 1)
             );
         }
     };
