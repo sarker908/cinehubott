@@ -14,18 +14,8 @@ const PLACEHOLDER_AC = 'https://placehold.co/185x278/141417/555?text=No+Photo';
 // ── STREAMING PLATFORM FILTER — new ──────────────────
 // TMDB Watch Providers (watch/providers API — provider IDs are stable/global).
 // Text-only labels; `id` matches TMDB's with_watch_providers provider ID.
-const WATCH_REGION = 'US';
-const STREAMING_PLATFORMS = [
-    { id: '',     label: 'All' },
-    { id: '8',    label: 'Netflix' },
-    { id: '337',  label: 'Disney+' },
-    { id: '9',    label: 'Prime Video' },
-    { id: '1899', label: 'Max' },
-    { id: '350',  label: 'Apple TV+' },
-    { id: '15',   label: 'Hulu' },
-    { id: '386',  label: 'Peacock' },
-    { id: '283',  label: 'Crunchyroll' },
-];
+const WATCH_REGION = 'BD';
+let STREAMING_PLATFORMS = [{ id: '', label: 'All' }];
 const PLATFORM_STORAGE_KEY = 'ch_platform'; // remembers the last selected platform id
 
 // ── AGE RATING FILTER/BADGE — new ────────────────────
@@ -33,7 +23,7 @@ const PLATFORM_STORAGE_KEY = 'ch_platform'; // remembers the last selected platf
 // Guidelines) to the 4 categories this feature supports. Only actual TMDB
 // certification values are ever mapped here — nothing is inferred from
 // score, popularity, genre, year, or keywords.
-const CERT_REGION = 'US'; // matches WATCH_REGION used elsewhere in this file
+const CERT_REGION = 'US'; // US certification labels are used for the age-rating filter
 const CERT_MAP = {
     'G': 'G/U',    'TV-Y': 'G/U',  'TV-Y7': 'G/U', 'TV-G': 'G/U',
     'PG': 'PG',    'TV-PG': 'PG',
@@ -226,6 +216,7 @@ async function init() {
         fetchGenres('movie', movieGenre),
         fetchGenres('tv', tvGenre),
     ]);
+    await loadPlatformProviders();
     renderPlatformFilters();
     const savedPlatform = localStorage.getItem(PLATFORM_STORAGE_KEY) || '';
     if (savedPlatform) {
@@ -1119,6 +1110,36 @@ async function fetchTVDiscover(more = false) {
         renderTV(results, !more);
     } catch { notify('Failed to apply filters', 'error'); }
     finally { hideLoading(tvLoading, tvGrid); }
+}
+
+// Fetch the actual provider catalogue for Bangladesh. TMDB provider IDs are
+// global, but which services are available differs by region.
+async function loadPlatformProviders() {
+    try {
+        const [movies, shows] = await Promise.all([
+            api('watch/providers/movie', { watch_region: WATCH_REGION }),
+            api('watch/providers/tv', { watch_region: WATCH_REGION })
+        ]);
+        const merged = new Map();
+        [...(movies.results || []), ...(shows.results || [])].forEach(provider => {
+            if (!merged.has(String(provider.provider_id))) {
+                merged.set(String(provider.provider_id), {
+                    id: String(provider.provider_id),
+                    label: provider.provider_name,
+                    priority: Number(provider.display_priority) || 999
+                });
+            }
+        });
+        STREAMING_PLATFORMS = [
+            { id: '', label: 'All' },
+            ...[...merged.values()]
+                .sort((a, b) => a.priority - b.priority || a.label.localeCompare(b.label))
+                .slice(0, 14)
+        ];
+    } catch (error) {
+        console.warn('Could not load Bangladesh streaming providers from TMDB:', error);
+        STREAMING_PLATFORMS = [{ id: '', label: 'All' }];
+    }
 }
 
 // ── STREAMING PLATFORM FILTER ────────────────────────
