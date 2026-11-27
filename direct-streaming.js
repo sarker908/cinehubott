@@ -170,7 +170,7 @@
             if (!request || !request.imdbId) return [];
             const type = request.type === 'tv' ? 'series' : 'movie';
             const imdbId = String(request.imdbId);
-            if (!/^tt\\d+$/i.test(imdbId)) return [];
+            if (!/^tt\d+$/i.test(imdbId)) return [];
             const itemId = type === 'series'
                 ? imdbId + ':' + Number(request.season) + ':' + Number(request.episode)
                 : imdbId;
