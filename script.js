@@ -696,6 +696,17 @@ function setupListeners() {
     $('tv-random').addEventListener('click', getRandom.bind(null, 'tv'));
 
     // Load more
+    // Start loading on pointer release as a fallback for browsers/environments
+    // where the synthesized click is swallowed. loadMoreMovies/loadMoreTV set
+    // the button disabled immediately, so the following click cannot double-load.
+    movieLoadMore.addEventListener('pointerup', (e) => {
+        if (e.isPrimary === false || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        loadMoreMovies();
+    });
+    tvLoadMore.addEventListener('pointerup', (e) => {
+        if (e.isPrimary === false || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        loadMoreTV();
+    });
     movieLoadMore.addEventListener('click', loadMoreMovies);
     tvLoadMore.addEventListener('click', loadMoreTV);
 
