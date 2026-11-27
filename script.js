@@ -762,11 +762,15 @@ function setupListeners() {
         const name = $('addon-manager-name').value.trim();
         const url = $('addon-manager-url').value.trim();
         if (!url) { notify('Manifest URL required', 'warning'); return; }
-        window.CineHubDirectStreaming.AddonManager.add({ name: name || url, manifestUrl: url });
-        $('addon-manager-name').value = '';
-        $('addon-manager-url').value = '';
-        renderAddonManager();
-        notify('Addon added', 'success');
+        try {
+            window.CineHubDirectStreaming.AddonManager.add({ name: name || url, manifestUrl: url });
+            $('addon-manager-name').value = '';
+            $('addon-manager-url').value = '';
+            renderAddonManager();
+            notify('Addon added. Use Test to verify its manifest.', 'success');
+        } catch (error) {
+            notify(error.message || 'Invalid addon URL', 'error');
+        }
     });
 
     refreshDevUI();
