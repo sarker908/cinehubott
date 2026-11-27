@@ -1268,29 +1268,77 @@ async function getRandom(type) {
 
 // ── LOAD MORE ─────────────────────────────────────────
 async function loadMoreMovies() {
-    if (moviePage >= movieTotalPages) return;
-    moviePage++;
-    movieLoadMore.innerHTML = '<span>Loading…</span>';
+    if (movieLoadMore.disabled) return;
+    if (moviePage >= movieTotalPages) {
+        movieLoadMore.style.display = 'none';
+        return;
+    }
+
+    const previousPage = moviePage;
+    const previousCount = movieResults.length;
+    moviePage = Math.min(moviePage + 1, movieTotalPages);
     movieLoadMore.disabled = true;
-    if      (movieQuery)                                    await fetchMovieSearch(movieQuery, true);
-    else if (Object.keys(movieFilters).length)              await fetchMoviesDiscover(true);
-    else if (currentMovieEndpoint === 'imdb_top_250')       await fetchImdbTop250(true);
-    else if (currentMovieEndpoint === 'superhero_movies')   await fetchSuperheroMovies(true);
-    else                                                    await fetchMovies(currentMovieEndpoint, true);
-    movieLoadMore.innerHTML = '<span>Load More</span><i class="fas fa-chevron-down"></i>';
-    movieLoadMore.disabled = false;
+    movieLoadMore.innerHTML = '<span>Loading…</span>';
+
+    try {
+        const hasActiveFilters = !!(
+            movieFilters.genre || movieFilters.year || movieFilters.language ||
+            Number(movieFilters.rating) > 0 || movieFilters.ageRating || movieFilters.platform
+        );
+        if (movieQuery) await fetchMovieSearch(movieQuery, true);
+        else if (hasActiveFilters) await fetchMoviesDiscover(true);
+        else if (currentMovieEndpoint === 'imdb_top_250') await fetchImdbTop250(true);
+        else if (currentMovieEndpoint === 'superhero_movies') await fetchSuperheroMovies(true);
+        else await fetchMovies(currentMovieEndpoint, true);
+
+        if (movieResults.length === previousCount && moviePage > previousPage) {
+            notify('No additional movies were returned. Try again in a moment.', 'warning');
+        }
+    } catch (error) {
+        moviePage = previousPage;
+        console.error('Load more movies failed:', error);
+        notify('Could not load more movies. Check your connection and try again.', 'error');
+    } finally {
+        movieLoadMore.innerHTML = '<span>Load More</span><i class="fas fa-chevron-down"></i>';
+        movieLoadMore.disabled = false;
+        movieLoadMore.style.display = moviePage < movieTotalPages ? 'block' : 'none';
+    }
 }
 
 async function loadMoreTV() {
-    if (tvPage >= tvTotalPages) return;
-    tvPage++;
-    tvLoadMore.innerHTML = '<span>Loading…</span>';
+    if (tvLoadMore.disabled) return;
+    if (tvPage >= tvTotalPages) {
+        tvLoadMore.style.display = 'none';
+        return;
+    }
+
+    const previousPage = tvPage;
+    const previousCount = tvResults.length;
+    tvPage = Math.min(tvPage + 1, tvTotalPages);
     tvLoadMore.disabled = true;
-    if (tvQuery)                            await fetchTVSearch(tvQuery, true);
-    else if (Object.keys(tvFilters).length) await fetchTVDiscover(true);
-    else                                    await fetchTVSorted(currentTvEndpoint, true);
-    tvLoadMore.innerHTML = '<span>Load More</span><i class="fas fa-chevron-down"></i>';
-    tvLoadMore.disabled = false;
+    tvLoadMore.innerHTML = '<span>Loading…</span>';
+
+    try {
+        const hasActiveFilters = !!(
+            tvFilters.genre || tvFilters.year || tvFilters.language ||
+            Number(tvFilters.rating) > 0 || tvFilters.ageRating || tvFilters.platform
+        );
+        if (tvQuery) await fetchTVSearch(tvQuery, true);
+        else if (hasActiveFilters) await fetchTVDiscover(true);
+        else await fetchTVSorted(currentTvEndpoint, true);
+
+        if (tvResults.length === previousCount && tvPage > previousPage) {
+            notify('No additional shows were returned. Try again in a moment.', 'warning');
+        }
+    } catch (error) {
+        tvPage = previousPage;
+        console.error('Load more TV shows failed:', error);
+        notify('Could not load more shows. Check your connection and try again.', 'error');
+    } finally {
+        tvLoadMore.innerHTML = '<span>Load More</span><i class="fas fa-chevron-down"></i>';
+        tvLoadMore.disabled = false;
+        tvLoadMore.style.display = tvPage < tvTotalPages ? 'block' : 'none';
+    }
 }
 
 // ── RENDER CARDS ─────────────────────────────────────
